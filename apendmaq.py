@@ -5,9 +5,9 @@ import urllib2 as url
 import datetime as dt
 import json
 import sys
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn import svm
-
+'''
 def set_bases(training_set,window_size):
     X = []
     y = []
@@ -30,6 +30,29 @@ def set_bases(training_set,window_size):
                     temp.append(training_set.values[index+j][0])
             X.append(temp)   
     return X,y
+'''
+def set_bases(training_set,window_size):
+    X = []
+    y = []
+    temp = []
+    for index,i in enumerate(training_set.values):
+        temp=[]
+        if(index+window_size+1) == len(training_set.values):
+            for j in range(0,window_size+1):
+                if j == window_size:
+                    y.append(training_set.values[index+j][0])
+                else:
+                    temp.append(training_set.values[index+j][0])
+            X.append(temp)
+            break
+        else:   
+            for j in range(0,window_size+1):
+                if j == window_size:
+                    y.append(training_set.values[index+j][0])
+                else:
+                    temp.append(training_set.values[index+j][0])
+            X.append(temp)   
+    return np.asarray(X),np.asarray(y)
     
 
 def format_date(dt):
@@ -68,29 +91,81 @@ def import_data():
     df = df.drop(df.index[len(df.values)-1])
     df.to_csv('bitcoin.csv')
     return df
-    
+
+def validate(trained_model, test_array,window_size,n=0):
+	results_list = []
+	if len(test_array) == window_size:
+		result = result = trained_model.predict(test_array)[0]
+		results_list = results
+
+	elif n != 0:
+		print "IF"
+		for index,i in enumerate(test_array):
+			if (index+window_size+n) > len(test_array)-1:
+				break
+			result = trained_model.predict(test_array[index:index+window_size])[0]
+			expected = test_array[n]
+			delta_abs = abs(test_array[n]-expected)
+			delta = test_array[n]-expected
+			results_list.append({'expected':expected,'predicted':result,'delta_abs':delta_abs,'delta':delta,'rate':result/expected})
+	else:
+		print "ELSE"
+		for index,i in enumerate(test_array):
+			if (index+window_size+1) > len(test_array)-1:
+				break
+			result = trained_model.predict(test_array[index:index+window_size])[0]
+			expected = test_array[index+window_size+1]
+			delta_abs = abs(test_array[n]-expected)
+			delta = test_array[n]-expected
+			results_list.append({'expected':expected,'predicted':result,'delta_abs':delta_abs,'delta':delta,'rate':result/expected})
+	return {'validation_test':results_list}
+
+def train_test_split(training_size,validation_size,window_size,c,kernel,csv_name):
+	time_serie = import_data()
+	training_set, validation_set = split_data_set(time_serie,training_size,validation_size)    
+	X,y=set_bases(training_set,window_size)
+	C = 1.0
+	validation_array = []
+	for i in validation_set.values:
+		validation_array.append(i[0])
+	print "INIT", dt.datetime.now()
+	svr = svm.SVR(kernel=kernel, C=C).fit(X, y)
+	validated_array = validate(svr,validation_array,window_size)
+	df = pd.DataFrame(validated_array['validation_test'])
+	df.to_csv(csv_name+'.csv')
+	print "END", dt.datetime.now()
+
 def main():
+	train_test_split(0.7,0.3,5,1.0,'linear','teste')
+	'''
     time_serie = import_data()
     #time_serie, training set size, validation set size
     training_set, validation_set = split_data_set(time_serie,0.7,0.3)    
-    X,y=set_bases(training_set,5)
-    X = np.asarray(X)
-    y = np.asarray(y) 
+    window_size = 5
+    X,y=set_bases(training_set,window_size)
     C = 1.0
-    teste = []
-    for i in validation_set.values[0:5]:
-        teste.append(i[0])
+    validation_array = []
+    for i in validation_set.values:
+        validation_array.append(i[0])
     print "INIT", dt.datetime.now()
     svr = svm.SVR(kernel='linear', C=C).fit(X, y)
-    prediction = svr.predict(teste)    
-    time_serie.plot()
-    print time_serie
-    plt.show()
+    validated_array = validate(svr,validation_array,window_size)
+    df = pd.DataFrame(validated_array['validation_test'])
+    df.to_csv('validated.csv')
+    #print df
+    
+
+    #print test
+    #sys.exit()
+    #time_serie.plot()
+    #print time_serie
+    #plt.show()
     print "PREDICTED RESULT", prediction
     print "EXPECTED RESULT", validation_set.values[6]
     print "DIF", validation_set.values[6][0] - prediction
     print "RATE",prediction / validation_set.values[6]
     print "END", dt.datetime.now()
+    '''
 if __name__=='__main__':
     main()
 
