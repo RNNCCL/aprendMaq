@@ -287,7 +287,7 @@ def k_fold(training_array,window_size,c,kernel):
     return
 
 def main():
-    kernel_list=['linear','polynomial','sigmoid']
+    kernel_list=['linear','poly','sigmoid']
     window_size_one=[5,10,20,50]
     window_size_two=[50,100,200,500]
     inicio=dt.datetime.now()
