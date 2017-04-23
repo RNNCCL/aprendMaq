@@ -299,7 +299,6 @@ def main():
             multiple_train_test_split([[0.6,0.2],[0.7,0.2],[0.8,0.2]],j,1.0,i)
             print "k_fold"
             k_fold([[0.3,0.7],[0.4,0.6],[0.5,0.5],[0.6,0.4],[0.7,0.3]],j,1.0,i)
-            k_fold([[0.3,0.7],[0.4,0.6]],j,1.0,i)
         for j in window_size_two:
             print "walking_forward"
             walking_forward(j, 1.0,i)
