@@ -290,6 +290,7 @@ def main():
     kernel_list=['linear','polynomial','sigmoid']
     window_size_one=[5,10,20,50]
     window_size_two=[50,100,200,500]
+    inicio=dt.datetime.now()
     for i in kernel_list:
         for j in window_size_one:
             print "train_test_split"
@@ -306,6 +307,12 @@ def main():
             rolling_window(j, 1.0,i)
     df_summary = pd.DataFrame(summary['summary'])
     df_summary.to_csv('summary.csv')
+    fim=dt.datetime.now()
+    print "###########################################"
+    print "###########################################"
+    print "TEMPO TOTAL",fim-inicio
+    print "###########################################"
+    print "###########################################"
 
 if __name__=='__main__':
     main()
